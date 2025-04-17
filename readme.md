@@ -46,7 +46,12 @@ Special thanks goes to [MattFryer's HA-mealie-Barcode-Scanner](https://github.co
 - You have [ESPHome](https://esphome.io/) setup and ready to go
 - Your Home Assistant can reach your Grocy install
 
-## Bill of Materials
+
+## Hardware
+
+![](./docs/images/assembled.png)
+
+### Bill of Materials
 Prices are approximate
 
 | Image                       | Item                      | Cost (AUD) |
@@ -64,8 +69,13 @@ Prices are approximate
 | | Wires | |
 | | Magnets, if attaching to Fridge | |
 
-## Software
+### Diagram
+To Add
 
+### 3D Printing
+If you use the board shown in the BOM, and align as shown in the image above, [this case](https://www.printables.com/model/1267415-esphome-grocy-barcode-scanner) (also in the 3D Models folder) will work for you.
+
+## Software
 ### ESPHome
 Create a new device in ESPHome, and use the code in `barcode-scanner.yaml`. In particular, pay attention to the substitutions section at the top, and update as needed. If you use a different ESP board, you may want to use different pins.
 
