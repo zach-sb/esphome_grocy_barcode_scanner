@@ -1,0 +1,234 @@
+alias: Grocy Barcode Scan
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - binary_sensor.kitchen_barcode_scanner_barcode_scanned
+    from: "off"
+    to: "on"
+conditions: []
+actions:
+  - action: rest_command.get_grocy_product_info
+    data:
+      barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+    response_variable: grocy_response
+  - if:
+      - condition: template
+        value_template: "{{ grocy_response['status'] == 200 }}"
+        alias: Barcode lookup Success
+    then:
+      - alias: Parse data
+        variables:
+          product: "{{ grocy_response['content']['product']['name'] }}"
+          purchase_unit: >-
+            {{
+            grocy_response['content']['default_quantity_unit_purchase']['name']
+            }}
+          purchase_units: >-
+            {{
+            grocy_response['content']['default_quantity_unit_purchase']['name_plural']
+            }}
+          product_id: "{{ grocy_response['content']['product']['id'] }}"
+          product_barcodes: "{{ grocy_response['content']['product_barcodes'] }}"
+          barcode_amount: >
+            {% set barcode_to_find = barcode %} {% set default_amount = 1 %} {%
+            set matched = namespace(found=false, amount=default_amount) %}
+
+            {% for item in product_barcodes %}
+              {% if item.barcode == barcode_to_find %}
+                {% set matched.found = true %}
+                {% if item.amount is not none %}
+                  {% set matched.amount = item.amount %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+
+            {{ matched.amount }}
+          stock_amount: "{{ grocy_response['content']['stock_amount']}}"
+          stock_amount_open: "{{ grocy_response['content']['stock_amount_opened']}}"
+      - alias: Run action based on mode
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: select.kitchen_barcode_scanner_mode
+                state: Purchase
+            sequence:
+              - action: rest_command.add_grocy_product
+                metadata: {}
+                data:
+                  barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+                  amount: "{{barcode_amount}}"
+                response_variable: grocy_action_response
+            alias: Purchase
+          - conditions:
+              - condition: state
+                entity_id: select.kitchen_barcode_scanner_mode
+                state: Consume
+            sequence:
+              - action: rest_command.consume_grocy_product
+                metadata: {}
+                data:
+                  barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+                  amount: "{{barcode_amount}}"
+                response_variable: grocy_action_response
+            alias: Consume
+          - conditions:
+              - condition: state
+                entity_id: select.kitchen_barcode_scanner_mode
+                state: Open
+            sequence:
+              - action: rest_command.open_grocy_product
+                metadata: {}
+                data:
+                  barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+                  amount: "{{barcode_amount}}"
+                response_variable: grocy_action_response
+            alias: Open
+          - conditions:
+              - condition: state
+                entity_id: select.kitchen_barcode_scanner_mode
+                state: Check Stock
+            sequence:
+              - action: rest_command.get_grocy_product_info
+                data:
+                  barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+                response_variable: grocy_action_response
+            alias: Check Stock
+      - alias: Update User
+        if:
+          - alias: Action Success
+            condition: template
+            value_template: "{{ grocy_action_response['status'] == 200 }}"
+        then:
+          - action: rest_command.get_grocy_product_info
+            data:
+              barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+            response_variable: grocy_response
+          - alias: Parse updated data
+            variables:
+              stock_amount_new: "{{ grocy_response['content']['stock_amount']}}"
+              stock_amount_open_new: "{{ grocy_response['content']['stock_amount_opened']}}"
+          - parallel:
+              - alias: Speak message
+                choose:
+                  - conditions:
+                      - condition: state
+                        entity_id: select.kitchen_barcode_scanner_mode
+                        state: Purchase
+                    sequence:
+                      - action: assist_satellite.announce
+                        metadata: {}
+                        data:
+                          message: Added "{{ product }}"
+                          preannounce: false
+                        target:
+                          entity_id: assist_satellite.kitchen_voice_assist_satellite
+                  - conditions:
+                      - condition: state
+                        entity_id: select.kitchen_barcode_scanner_mode
+                        state: Consume
+                    sequence:
+                      - action: assist_satellite.announce
+                        metadata: {}
+                        data:
+                          message: "{{ product }} consumed"
+                          preannounce: false
+                        target:
+                          entity_id: assist_satellite.kitchen_voice_assist_satellite
+                  - conditions:
+                      - condition: state
+                        entity_id: select.kitchen_barcode_scanner_mode
+                        state: Open
+                    sequence:
+                      - action: assist_satellite.announce
+                        metadata: {}
+                        data:
+                          message: "{{ product }} opened"
+                          preannounce: false
+                        target:
+                          entity_id: assist_satellite.kitchen_voice_assist_satellite
+                  - conditions:
+                      - condition: state
+                        entity_id: select.kitchen_barcode_scanner_mode
+                        state: Check Stock
+                    sequence:
+                      - action: assist_satellite.announce
+                        metadata: {}
+                        data:
+                          message: |
+                            {% if stock_amount_new | int > 1 %}
+                              There are {{ stock_amount_new }} {{ purchase_units }} of {{ product }} in stock, with {{ stock_amount_open_new }} open.
+                            {% elif stock_amount_new | int == 1 %}
+                              There is {{ stock_amount_new }} {{ purchase_unit }} of {{ product }} in stock, with {{ stock_amount_open_new }} open.
+                            {% else %}
+                              There is no {{ product }} in stock.
+                            {% endif %}
+                          preannounce: false
+                        target:
+                          entity_id: assist_satellite.kitchen_voice_assist_satellite
+              - alias: Update Screen
+                sequence:
+                  - action: rest_command.get_grocy_product_info
+                    data:
+                      barcode: "{{ states('sensor.kitchen_barcode_scanner_barcode')}}"
+                    response_variable: grocy_response_new
+                  - action: esphome.kitchen_barcode_scanner_set_product_text
+                    metadata: {}
+                    data:
+                      product_name: "{{ product }}"
+                      product_stock: >-
+                        {{ stock_amount_new }} {{ "(" ~ stock_amount_open_new ~
+                        " open)" if stock_amount_open_new > 0 else "" }} {{
+                        purchase_units if stock_amount_new > 1 else
+                        purchase_unit}}
+
+
+        else:
+          - action: esphome.kitchen_barcode_scanner_set_product_text
+            metadata: {}
+            data:
+              product_name: Error
+              product_stock: ""
+          - alias: Get error message
+            variables:
+              error_message: >-
+                {{ grocy_action_response['content']['error_message'] |
+                replace('<', 'less than ') | replace('>', ' greater than') }}
+          - action: assist_satellite.announce
+            metadata: {}
+            data:
+              message: "Error: {{error_message}}"
+              preannounce: false
+            target:
+              entity_id: assist_satellite.kitchen_voice_assist_satellite
+    else:
+      - if:
+          - condition: template
+            value_template: "{{ grocy_response['status'] == 400 }}"
+        then:
+          - action: esphome.kitchen_barcode_scanner_set_product_text
+            metadata: {}
+            data:
+              product_name: No Match
+              product_stock: ""
+          - action: assist_satellite.announce
+            metadata: {}
+            data:
+              message: Barcode not recognized
+              preannounce: false
+            target:
+              entity_id: assist_satellite.kitchen_voice_assist_satellite
+        else:
+          - action: esphome.kitchen_barcode_scanner_set_product_text
+            metadata: {}
+            data:
+              product_name: Gen. Error
+              product_stock: ""
+          - action: assist_satellite.announce
+            metadata: {}
+            data:
+              message: There was an error looking up that barcode
+              preannounce: false
+            target:
+              entity_id: assist_satellite.kitchen_voice_assist_satellite
+mode: restart

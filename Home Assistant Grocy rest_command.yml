@@ -1,0 +1,45 @@
+rest_command:
+  get_grocy_product_info:
+    url: "[GROCY_URL]/api/stock/products/by-barcode/{{ barcode | urlencode }}"
+    method: GET
+    headers:
+      accept: "application/json"
+      GROCY-API-KEY: "[GROCY_API_KEY]"
+
+  add_grocy_product:
+    url: "[GROCY_URL]/api/stock/products/by-barcode/{{ barcode | urlencode }}/add"
+    method: POST
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      GROCY-API-KEY: "[GROCY_API_KEY]"
+    payload: >
+      {
+        "amount": {{ amount }},
+        "transaction_type": "purchase"
+      }
+
+  consume_grocy_product:
+    url: "[GROCY_URL]/api/stock/products/by-barcode/{{ barcode | urlencode }}/consume"
+    method: POST
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      GROCY-API-KEY: "[GROCY_API_KEY]"
+    payload: >
+      {
+        "amount": {{ amount }},
+        "transaction_type": "consume"
+      }
+
+  open_grocy_product:
+    url: "[GROCY_URL]/api/stock/products/by-barcode/{{ barcode | urlencode }}/open"
+    method: POST
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      GROCY-API-KEY: "[GROCY_API_KEY]"
+    payload: >
+      {
+        "amount": {{ amount }}
+      }
