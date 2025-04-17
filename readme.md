@@ -49,7 +49,7 @@ Special thanks goes to [MattFryer's HA-mealie-Barcode-Scanner](https://github.co
 
 ## Hardware
 
-![](./docs/images/assembled.png)
+![](./docs/images/assembled.jpg)
 
 ### Bill of Materials
 Prices are approximate
