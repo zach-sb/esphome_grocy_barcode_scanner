@@ -2,6 +2,8 @@
 
 ![](./docs/images/fin.jpg)
 
+[Demo Video](https://youtube.com/shorts/6EKOk3bfEmU?feature=share)
+
 This is the latest effort in my attempts to actually make use of Grocy in my house. Grocy is a very cool looking way to keep track of your groceries, however it is very powerful. With great power, comes great complexity, and this great complexity generally leads to adoption difficulties.
 
 We have found that when bringing the shopping home it really is just too much effort to consistently get a phone, find the app, open the app and get the right scanner mode running. The hope is by introducing a dedicated barcode scanner that can easily accessed, that obstacle would be removed.
