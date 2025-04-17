@@ -13,7 +13,7 @@ Also, I just wanted to make a cool barcode scanner.
 Special thanks goes to [MattFryer's HA-mealie-Barcode-Scanner](https://github.com/MattFryer/HA-Mealie-Barcode-Scanner), most of the code for interacting with the GM67 barcode scanner came from their work. Their readme contains a lot of useful information. In particular, the notes about setting it into UART mode, and how the wires are non standard colors.
 
 > [!WARNING]
-> You may think you can subsitute another barcode scanner instaed of the GM67. While you may have success with this, DO NOT GET A GM60 (round with a rgb ring). It sucked. GM67 is way better and worked perfectly in this project. 
+> You may think you can substitute another barcode scanner instead of the GM67. While you may have success with this, DO NOT GET A GM60 (round with a rgb ring). It sucked. GM67 is way better and worked perfectly in this project. 
 
 ## Features
 - Can scan any barcode supported by the [GM67 scanner](http://www.growbarcode.com/productinfo/888736.html)
@@ -35,7 +35,7 @@ Special thanks goes to [MattFryer's HA-mealie-Barcode-Scanner](https://github.co
     - Date
     - Current Stock Count
     - Current Shopping list count
-- When paired with a TTS enabled voice asssitant in Home Assistant (Such as the [Home Assistant Voice PE](https://www.home-assistant.io/voice-pe/))
+- When paired with a TTS enabled voice assistant in Home Assistant (Such as the [Home Assistant Voice PE](https://www.home-assistant.io/voice-pe/))
   - Speak current action
   - Speak current stock levels 
 
@@ -66,7 +66,7 @@ Prices are approximate
 | ![](./docs/images/port.png)| USB C-type 2 pin connector socket with buckle | $0.40 |
 | ![](./docs/images/body.png)| Printed Case Body | $0.65|
 | ![](./docs/images/lid.png)| Printed Case Lid | $0.55 |
-| ![](./docs/images/angle.png)| Printed Angle Adapter | $0.05 |
+| ![](./docs/images/angle.png)| Printed Angle Adaptor | $0.05 |
 | | One M3 screw, no longer than 16mm| |
 | | Wires | |
 | | Magnets, if attaching to Fridge | |
@@ -81,7 +81,7 @@ If you use the board shown in the BOM, and align as shown in the image above, [t
 ### ESPHome
 Create a new device in ESPHome, and use the code in `barcode-scanner.yaml`. In particular, pay attention to the substitutions section at the top, and update as needed. If you use a different ESP board, you may want to use different pins.
 
-Also change the HA Sensors section as you see fit. If you don't use the grocy interation here, you shouldn't need it at all. 
+Also change the HA Sensors section as you see fit. If you don't use the grocy integration here, you shouldn't need it at all. 
 
 ```yaml
 substitutions:
@@ -123,8 +123,8 @@ The display shows a clock, and I have this issue I haven't bothered figuring out
 
 ```yaml
 time:
-  - platform: homeassistant
-    id: homeassistant_time
+  - platform: homeistant
+    id: homeistant_time
     timezone: ${timezone} # <-- Remove this
 ```
 
