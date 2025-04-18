@@ -72,7 +72,8 @@ Prices are approximate
 | | Magnets, if attaching to Fridge | |
 
 ### Diagram
-To Add
+
+![](./docs/images/diagram.png)
 
 ### 3D Printing
 If you use the board shown in the BOM, and align as shown in the image above, [this case](https://www.printables.com/model/1267415-esphome-grocy-barcode-scanner) (also in the 3D Models folder) will work for you.
